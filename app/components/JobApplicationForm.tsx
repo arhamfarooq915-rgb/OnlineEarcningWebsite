@@ -99,6 +99,7 @@ export default function JobApplicationForm() {
         email: formData.email,
         date: date,
         photo_url: photoUrl,
+        photo_attachment: photoUrl ? `<img src="${photoUrl}" alt="Passport Photo" style="max-width: 200px; height: auto; border: 1px solid #ccc; margin: 10px 0;"><br><a href="${photoUrl}" download="passport-photo-${formData.fullName.replace(/\s+/g, '-')}.jpg" style="display: inline-block; padding: 8px 16px; background-color: #f13005; color: white; text-decoration: none; border-radius: 4px; margin-top: 10px;">Download Photo</a>` : 'No photo uploaded',
       };
 
       await emailjs.send(serviceId, templateId, emailParams, publicKey);

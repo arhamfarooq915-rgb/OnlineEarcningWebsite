@@ -147,7 +147,7 @@ export default function Footer() {
                 />
                 <div>
                   <p className="text-lg font-bold" style={{ color: '#1d2d8c' }}>
-                    +1 (236) 245-7458
+                    +91 8822021340
                   </p>
                 </div>
               </div>

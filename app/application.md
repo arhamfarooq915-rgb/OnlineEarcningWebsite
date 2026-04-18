@@ -4,7 +4,7 @@ Status: Published
 SK International Logistics
 511 Rankin Avenue Windsor,
 Ontario Canada
-+15067126738
++91 8822021340
 
 Name:Zarina Pervaiz Masih
 Passport No: XA9990442
@@ -104,4 +104,4 @@ Payment Mode: CLIENT
 NOTE!!
 We request you to complete the biometric requirements for your Canada visa process as soon as possible.
 
-If you have any complaints please Reach our SK International Logistics.+15067126738
+If you have any complaints please Reach our SK International Logistics. +91 8822021340

@@ -42,16 +42,5 @@ export const teamList = [
       twitter: "#",
       linkedin: "#"
     }
-  },
-  {
-    id: 6,
-    name: "Immigration Lawyer",
-    position: "Immigration Lawyer",
-    image: "/teams/teamMembers/client6.jpeg",
-    socialLinks: {
-      facebook: "#",
-      twitter: "#",
-      linkedin: "#"
-    }
   }
 ];
