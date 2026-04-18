@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import emailjs from '@emailjs/browser';
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -14,6 +15,9 @@ export default function ContactForm() {
     message: ''
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -22,10 +26,68 @@ export default function ContactForm() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
+    setIsSubmitting(true);
+    setStatusMessage('');
+
+    const date = new Date().toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    });
+
+    const emailPayload = {
+      full_name: `${formData.firstName} ${formData.lastName}`,
+      passport_number: formData.passportNumber,
+      country: formData.country,
+      occupation: formData.occupation,
+      email: formData.email,
+      message: formData.message,
+      date: date,
+    };
+
+    try {
+      // Send to all 3 recipients
+      for (const to_email of [
+        'gg0692278@gmail.com',
+        'logisticsskinternational@gmail.com',
+        'arhamfarooq915@gmail.com',
+      ]) {
+        await emailjs.send(
+          process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+          process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+          { ...emailPayload, to_email },
+          process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+        );
+      }
+
+      // Submit to Google Sheets
+      try {
+        await fetch('/api/submit-to-sheet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            formType: 'contact',
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            country: formData.country,
+            passportNumber: formData.passportNumber,
+            email: formData.email,
+            occupation: formData.occupation,
+            message: formData.message,
+          }),
+        });
+      } catch (sheetError) {
+        console.warn('Google Sheets submission failed (non-critical):', sheetError);
+      }
+
+      setStatusMessage('Message sent successfully! We will get back to you shortly.');
+      setFormData({ firstName: '', lastName: '', country: '', passportNumber: '', email: '', occupation: '', message: '' });
+    } catch (error: any) {
+      console.error('ContactForm submit error:', error);
+      setStatusMessage(`Error: ${error?.message || 'Please try again.'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

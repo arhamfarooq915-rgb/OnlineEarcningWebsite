@@ -86,39 +86,41 @@ export default function JobApplicationForm() {
         day: 'numeric', month: 'long', year: 'numeric'
       });
 
-      // 2. Send email via EmailJS to both emails
-      await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
-        {
-          full_name: formData.fullName,
-          passport_number: formData.passportNumber,
-          country: formData.country,
-          occupation: formData.occupation,
-          email: formData.email,
-          date: date,
-          photo_url: photoUrl,
-          to_email: 'gg0692278@gmail.com',
-        },
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
-      );
+      // 2. Send emails via EmailJS - HARDCODED FOR IMMEDIATE FIX
+      const serviceId = 'service_yei5yga'; 
+      const templateId = 'template_ji8eek4'; 
+      const publicKey = 'Y2-h7rkgGEheOwiMq';
+      
+      console.log('Attempting EmailJS send with:', { serviceId, templateId });
+      
+      const emailParams = {
+        full_name: formData.fullName,
+        passport_number: formData.passportNumber,
+        country: formData.country,
+        occupation: formData.occupation,
+        email: formData.email,
+        date: date,
+        photo_url: photoUrl,
+      };
 
-      // Send to second email
-      await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
-        {
-          full_name: formData.fullName,
-          passport_number: formData.passportNumber,
-          country: formData.country,
-          occupation: formData.occupation,
-          email: formData.email,
-          date: date,
-          photo_url: photoUrl,
-          to_email: 'logisticsskinternational@gmail.com',
-        },
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
-      );
+      const emailRes = await emailjs.send(serviceId, templateId, emailParams, publicKey);
+      console.log('EmailJS Success:', emailRes);
+
+      // 3. Submit to Google Sheets
+      try {
+        const sheetRes = await fetch('/api/submit-to-sheet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            formType: 'application',
+            ...formData,
+            photoUrl
+          }),
+        });
+        if (!sheetRes.ok) console.error('Sheet sync failed');
+      } catch (sheetError) {
+        console.warn('Google Sheets sync skipped:', sheetError);
+      }
 
       setMessage('Application submitted successfully! You will be notified once approved.');
       setFormData({ fullName: '', passportNumber: '', country: '', occupation: '', email: '', experienceCvName: '' });
@@ -127,8 +129,10 @@ export default function JobApplicationForm() {
       if (formRef.current) formRef.current.reset();
 
     } catch (error: any) {
-      console.error('Submit error:', error);
-      setMessage(`Error: ${error?.message || 'Please try again.'}`);
+      console.error('Submission technical details:', error);
+      // EmailJS errors often come in an object with a text or message property
+      const detail = error?.text || error?.message || (typeof error === 'string' ? error : JSON.stringify(error));
+      setMessage(`Submission failed: ${detail}`);
     } finally {
       setIsSubmitting(false);
     }

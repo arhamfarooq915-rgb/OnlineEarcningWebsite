@@ -1,4 +1,4 @@
-// File: F:\Faisal Website\sk_International_Logistics\app\layout.tsx
+// File: C:\Users\PMLS\Downloads\arham webstie\OnlineEarcningWebsite\app\layout.tsx
 import * as entry from '../../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
