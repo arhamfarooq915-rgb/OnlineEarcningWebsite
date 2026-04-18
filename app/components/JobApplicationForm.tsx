@@ -98,6 +98,10 @@ export default function JobApplicationForm() {
         day: 'numeric', month: 'long', year: 'numeric'
       });
 
+      // Create download-friendly URLs using Cloudinary's fl_attachment transformation
+      const photoDownloadUrl = photoUrl ? photoUrl.replace('/upload/', '/upload/fl_attachment/') : '';
+      const cvDownloadUrl = cvUrl ? cvUrl.replace('/upload/', '/upload/fl_attachment/') : '';
+
       // 2. Send emails via EmailJS - HARDCODED FOR PRODUCTION FIX
       const serviceId = 'service_yei5yga'; 
       const templateId = 'template_ji8eek4'; 
@@ -112,24 +116,31 @@ export default function JobApplicationForm() {
         date: date,
         photo_url: photoUrl,
         cv_url: cvUrl,
+        // Passing the actual files as parameters tells EmailJS to attach them as real files
+        // This will trigger the "Attachment Card" in Gmail for easy downloading
+        photo_file: photoFile,
+        cv_file: cvFile,
         photo_attachment: photoUrl ? `
-          <div style="border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 8px; background-color: #f9f9f9;">
+          <div style="border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 8px; background-color: #f9f9f9; font-family: Arial, sans-serif;">
             <h3 style="margin: 0 0 10px 0; color: #333; font-size: 16px;">📎 Passport Photo Attachment</h3>
             <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-              <img src="${photoUrl}" alt="Passport Photo" style="max-width: 120px; height: auto; border: 1px solid #ccc; border-radius: 4px;">
+              <a href="${photoDownloadUrl}" target="_blank" style="text-decoration: none;">
+                <img src="${photoUrl}" alt="Passport Photo" style="max-width: 120px; height: auto; border: 1px solid #ccc; border-radius: 4px; display: block;">
+              </a>
               <div style="flex: 1; min-width: 200px;">
-                <p style="margin: 0 0 5px 0; font-weight: bold; color: #333;">passport-photo-${formData.fullName.replace(/\s+/g, '-')}.jpg</p>
-                <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Passport size photo for ${formData.fullName}</p>
-                <a href="${photoUrl}" download="passport-photo-${formData.fullName.replace(/\s+/g, '-')}.jpg" 
-                   style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background-color: #f13005; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
-                  <span style="font-size: 16px;">⬇️</span> Download Image
+                <p style="margin: 0 0 5px 0; font-weight: bold; color: #333;">${photoFile?.name || 'passport-photo.jpg'}</p>
+                <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Official identity photo for ${formData.fullName}</p>
+                <a href="${photoDownloadUrl}" download="${photoFile?.name || 'passport-photo.jpg'}" 
+                   style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background-color: #f13005; color: #ffffff !important; text-decoration: none !important; border-radius: 6px; font-weight: bold; font-size: 14px; border: none;">
+                  <span style="font-size: 16px;">📥</span> CLICK TO DOWNLOAD IMAGE
                 </a>
               </div>
             </div>
+            <p style="margin-top: 10px; font-size: 12px; color: #888;">Note: If the button above doesn't work, click the image to view or use the attachment at the bottom of the email.</p>
           </div>
         ` : '<p style="color: #999; font-style: italic;">No photo uploaded</p>',
         cv_attachment: cvUrl ? `
-          <div style="border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 8px; background-color: #f9f9f9;">
+          <div style="border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 8px; background-color: #f9f9f9; font-family: Arial, sans-serif;">
             <h3 style="margin: 0 0 10px 0; color: #333; font-size: 16px;">📄 CV/Resume Attachment</h3>
             <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
               <div style="width: 60px; height: 60px; background-color: #f13005; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
@@ -137,10 +148,10 @@ export default function JobApplicationForm() {
               </div>
               <div style="flex: 1; min-width: 200px;">
                 <p style="margin: 0 0 5px 0; font-weight: bold; color: #333;">${formData.experienceCvName}</p>
-                <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Experience CV for ${formData.fullName}</p>
-                <a href="${cvUrl}" download="${formData.experienceCvName}" 
-                   style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background-color: #f13005; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
-                  <span style="font-size: 16px;">⬇️</span> Download CV
+                <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Professional CV for ${formData.fullName}</p>
+                <a href="${cvDownloadUrl}" download="${formData.experienceCvName}" 
+                   style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background-color: #f13005; color: #ffffff !important; text-decoration: none !important; border-radius: 6px; font-weight: bold; font-size: 14px; border: none;">
+                  <span style="font-size: 16px;">📥</span> CLICK TO DOWNLOAD CV
                 </a>
               </div>
             </div>
