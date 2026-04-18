@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
         body.occupation || '',
         body.email || '',
         body.photoUrl || '',
+        body.cvUrl || '',
       ];
     }
 

@@ -13,7 +13,7 @@ export default function ContactInfoGrid() {
       title: 'CALL US',
       content: (
         <div className="text-center">
-          <p className="text-gray-600">+1 506 712 6738</p>
+          <p className="text-gray-600">+91 8822021340</p>
         </div>
       )
     },

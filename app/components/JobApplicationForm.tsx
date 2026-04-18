@@ -21,17 +21,19 @@ const countries = [
   "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei Darussalam", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Eritrea", "Estonia", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kuwait", "Kyrgyzstan", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Mauritania", "Mauritius", "Mexico", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Norway", "Oman", "Pakistan", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russian Federation", "Rwanda", "Saudi Arabia", "Senegal", "Serbia", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Somalia", "South Africa", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Togo", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Venezuela", "Viet Nam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-// Upload image to Cloudinary and return URL
-async function uploadToCloudinary(file: File): Promise<string> {
+// Upload file to Cloudinary and return URL
+async function uploadToCloudinary(file: File, resourceType: 'image' | 'raw' = 'image'): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
+  formData.append('resource_type', resourceType);
+  
   const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
     { method: 'POST', body: formData }
   );
   const data = await res.json();
-  if (!data.secure_url) throw new Error('Image upload failed');
+  if (!data.secure_url) throw new Error(`${resourceType} upload failed`);
   return data.secure_url;
 }
 
@@ -45,6 +47,7 @@ export default function JobApplicationForm() {
     experienceCvName: ''
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [cvFile, setCvFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -67,7 +70,10 @@ export default function JobApplicationForm() {
 
   const handleCvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) setFormData(prev => ({ ...prev, experienceCvName: file.name }));
+    if (file) {
+      setCvFile(file);
+      setFormData(prev => ({ ...prev, experienceCvName: file.name }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -76,10 +82,16 @@ export default function JobApplicationForm() {
     setMessage('');
 
     try {
-      // 1. Upload photo to Cloudinary
+      // 1. Upload files to Cloudinary
       let photoUrl = '';
+      let cvUrl = '';
+      
       if (photoFile) {
-        photoUrl = await uploadToCloudinary(photoFile);
+        photoUrl = await uploadToCloudinary(photoFile, 'image');
+      }
+      
+      if (cvFile) {
+        cvUrl = await uploadToCloudinary(cvFile, 'raw');
       }
 
       const date = new Date().toLocaleDateString('en-GB', {
@@ -99,7 +111,41 @@ export default function JobApplicationForm() {
         email: formData.email,
         date: date,
         photo_url: photoUrl,
-        photo_attachment: photoUrl ? `<img src="${photoUrl}" alt="Passport Photo" style="max-width: 200px; height: auto; border: 1px solid #ccc; margin: 10px 0;"><br><a href="${photoUrl}" download="passport-photo-${formData.fullName.replace(/\s+/g, '-')}.jpg" style="display: inline-block; padding: 8px 16px; background-color: #f13005; color: white; text-decoration: none; border-radius: 4px; margin-top: 10px;">Download Photo</a>` : 'No photo uploaded',
+        cv_url: cvUrl,
+        photo_attachment: photoUrl ? `
+          <div style="border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 8px; background-color: #f9f9f9;">
+            <h3 style="margin: 0 0 10px 0; color: #333; font-size: 16px;">📎 Passport Photo Attachment</h3>
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+              <img src="${photoUrl}" alt="Passport Photo" style="max-width: 120px; height: auto; border: 1px solid #ccc; border-radius: 4px;">
+              <div style="flex: 1; min-width: 200px;">
+                <p style="margin: 0 0 5px 0; font-weight: bold; color: #333;">passport-photo-${formData.fullName.replace(/\s+/g, '-')}.jpg</p>
+                <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Passport size photo for ${formData.fullName}</p>
+                <a href="${photoUrl}" download="passport-photo-${formData.fullName.replace(/\s+/g, '-')}.jpg" 
+                   style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background-color: #f13005; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
+                  <span style="font-size: 16px;">⬇️</span> Download Image
+                </a>
+              </div>
+            </div>
+          </div>
+        ` : '<p style="color: #999; font-style: italic;">No photo uploaded</p>',
+        cv_attachment: cvUrl ? `
+          <div style="border: 1px solid #ddd; padding: 15px; margin: 15px 0; border-radius: 8px; background-color: #f9f9f9;">
+            <h3 style="margin: 0 0 10px 0; color: #333; font-size: 16px;">📄 CV/Resume Attachment</h3>
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+              <div style="width: 60px; height: 60px; background-color: #f13005; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                <span style="color: white; font-size: 24px; font-weight: bold;">📄</span>
+              </div>
+              <div style="flex: 1; min-width: 200px;">
+                <p style="margin: 0 0 5px 0; font-weight: bold; color: #333;">${formData.experienceCvName}</p>
+                <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">Experience CV for ${formData.fullName}</p>
+                <a href="${cvUrl}" download="${formData.experienceCvName}" 
+                   style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background-color: #f13005; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
+                  <span style="font-size: 16px;">⬇️</span> Download CV
+                </a>
+              </div>
+            </div>
+          </div>
+        ` : '<p style="color: #999; font-style: italic;">No CV uploaded</p>',
       };
 
       await emailjs.send(serviceId, templateId, emailParams, publicKey);
@@ -112,7 +158,8 @@ export default function JobApplicationForm() {
           body: JSON.stringify({
             formType: 'application',
             ...formData,
-            photoUrl
+            photoUrl,
+            cvUrl
           }),
         });
         if (!sheetRes.ok) console.error('Sheet sync failed');
@@ -123,6 +170,7 @@ export default function JobApplicationForm() {
       setMessage('Application submitted successfully! You will be notified once approved.');
       setFormData({ fullName: '', passportNumber: '', country: '', occupation: '', email: '', experienceCvName: '' });
       setPhotoFile(null);
+      setCvFile(null);
       setPhotoPreview('');
       if (formRef.current) formRef.current.reset();
 

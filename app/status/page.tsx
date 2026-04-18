@@ -298,7 +298,7 @@ export default function JobStatus() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(60, 60, 60);
-    const noteText = 'We request you to complete the biometric requirements for your Canada visa process as soon as possible.\nIf you have any complaints please Reach our SK International Logistics. +1 (236) 245-7458';
+    const noteText = 'We request you to complete the biometric requirements for your Canada visa process as soon as possible.\nIf you have any complaints please Reach our SK International Logistics. +91 8822021340';
     const noteLines = doc.splitTextToSize(noteText, pageW - 28);
     doc.text(noteLines, 14, y);
     y += noteLines.length * 5 + 8;
@@ -373,7 +373,7 @@ export default function JobStatus() {
                       <p className="font-bold">SK International Logistics</p>
                       <p>511 Rankin Avenue Windsor,</p>
                       <p>Ontario Canada</p>
-                      <p>+1 (236) 245-7458</p>
+                      <p>+91 8822021340</p>
                     </div>
                     {application.passportPhoto && application.passportPhoto.startsWith('http') ? (
                       <img src={application.passportPhoto} alt="Passport Photo"
@@ -539,7 +539,7 @@ export default function JobStatus() {
                   <p className="font-bold text-gray-900 mb-1">NOTE!!</p>
                   <p className="text-gray-600 leading-relaxed">
                     We request you to complete the biometric requirements for your Canada visa process as soon as possible.<br />
-                    If you have any complaints please Reach our SK International Logistics. +1 (236) 245-7458
+                    If you have any complaints please Reach our SK International Logistics. +91 8822021340
                   </p>
                 </div>
 
