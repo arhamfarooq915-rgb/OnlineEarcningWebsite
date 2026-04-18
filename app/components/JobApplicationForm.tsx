@@ -86,12 +86,10 @@ export default function JobApplicationForm() {
         day: 'numeric', month: 'long', year: 'numeric'
       });
 
-      // 2. Send emails via EmailJS - HARDCODED FOR IMMEDIATE FIX
-      const serviceId = 'service_yei5yga'; 
-      const templateId = 'template_ji8eek4'; 
-      const publicKey = 'Y2-h7rkgGEheOwiMq';
-      
-      console.log('Attempting EmailJS send with:', { serviceId, templateId });
+      // 2. Send emails via EmailJS
+      const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!;
+      const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!;
+      const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!;
       
       const emailParams = {
         full_name: formData.fullName,
@@ -103,8 +101,7 @@ export default function JobApplicationForm() {
         photo_url: photoUrl,
       };
 
-      const emailRes = await emailjs.send(serviceId, templateId, emailParams, publicKey);
-      console.log('EmailJS Success:', emailRes);
+      await emailjs.send(serviceId, templateId, emailParams, publicKey);
 
       // 3. Submit to Google Sheets
       try {
